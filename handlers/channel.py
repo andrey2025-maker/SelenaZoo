@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from aiogram import Router, Bot
+from aiogram import Router, Bot, F  # ДОБАВЬТЕ F СЮДА!
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import exceptions
