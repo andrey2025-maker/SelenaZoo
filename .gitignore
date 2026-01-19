@@ -1,0 +1,5 @@
+# Минимальная версия только для .env
+echo ".env" > .gitignore
+echo ".env.local" >> .gitignore  
+echo ".env.*" >> .gitignore
+echo "*.env" >> .gitignore

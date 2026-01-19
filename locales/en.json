@@ -1,0 +1,47 @@
+{
+    "start": {
+        "welcome": "🇺🇸🍽️ Welcome to the Build a Zoo bot for sending notifications about Stock and Totems!",
+        "choose_language": "🇺🇸🗯️Select the language in which you will receive notifications:"
+    },
+    "subscription": {
+        "require": "To receive notifications, subscribe to the group:\n👉 @buildazoo_chat\nAfter subscribing, click the button:",
+        "check_button": "🔍 Check subscription",
+        "not_subscribed": "❌ You are not subscribed to the group yet.\nSubscribe and click the button again.\n👉 @buildazoo_chat",
+        "confirmed": "✅ Subscription confirmed!\nNow configure which notifications you want to receive:\n\n🥝 Food - select fruits for which you want to receive notifications\n🗿 Free - Notifications about free totems\n🗿💎 Paid - Notifications about paid totems (payment is usually specified in the text with a link to the totem, and it indicates who to send it to; most often it's a person near the food shop. If you're slow and don't send it in time, the person might block you)\n\nBy writing these words, you can select the desired fruits again: \"Food, Stock, Eat, Totems, Totem\"\nBy writing \"Disable, Off\" you will disable all notifications."
+    },
+    "settings": {
+        "title": "⚙️ Notification settings:\nNow configure which notifications you want to receive:\n\n🥝 Food - select fruits for which you want to receive notifications\n🗿 Free - Notifications about free totems\n🗿💎 Paid - Notifications about paid totems (payment is usually specified in the text with a link to the totem, and it indicates who to send it to; most often it's a person near the food shop. If you're slow and don't send it in time, the person might block you)\n\nBy writing these words, you can select the desired fruits again: \"Food, Stock, Eat, Totems, Totem\"\nBy writing \"Disable, Off\" you will disable all notifications.",
+        "food_button": "🥝 Food (fruit selection)",
+        "free_totems_button": "🗿 Free totems",
+        "paid_totems_button": "💎 Paid totems",
+        "back_button": "🔙 Back",
+        "food_selection": "Select fruits (multiple choice possible):",
+        "select_all": "📦 Receive all",
+        "save_button": "💾 Save",
+        "saved": "✅ Settings saved!\nYou will receive:\n{fruits}",
+        "no_fruits_selected": "ℹ️ You haven't selected any fruits. Food notifications will not be sent.",
+        "totem_toggle_on": "✅ ON",
+        "totem_toggle_off": "❌ OFF"
+    },
+    "notifications": {
+        "food_title": "🍽️ New food in stock!",
+        "free_totem_title": "🗿 Free totem",
+        "paid_totem_title": "💎 Paid totem",
+        "stock_prefix": "stock",
+        "unsubscribed": "❌ You have unsubscribed from the required group. Notifications suspended.\nSubscribe again and click 'Check subscription'."
+    },
+    "admin": {
+        "stats": "📊 Bot statistics:\n👥 Total users: {total_users}\n✅ Active subscribers: {active_subscribers}\n\n🍎 Fruit popularity:\n{fruit_stats}\n\n🗿 Free totems: {free_totems}\n💎 Paid totems: {paid_totems}",
+        "broadcast_started": "📢 Broadcast started for {count} users...",
+        "broadcast_completed": "✅ Broadcast completed! Sent {success} out of {total} messages.",
+        "access_denied": "⛔ You don't have administrator rights."
+    },
+    "fruits": {
+        "Pear": "Pear",
+        "Acorn": "Acorn",
+        "Pineapple": "Pineapple",
+        "Kiwi": "Kiwi",
+        "Colossal Pinecone": "Colossal Pinecone",
+        "Dragon Fruit": "Dragon Fruit"
+    }
+}
