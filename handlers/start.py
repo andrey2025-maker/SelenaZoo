@@ -2,6 +2,7 @@ from aiogram import Router, types, F
 from aiogram.filters import Command, or_f
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.enums import ChatType
 
 from database import Database
 from config import Config
@@ -20,9 +21,12 @@ KEYWORDS = [
     "Фрукты", "Fruits", "Fruit", "Отключить", "Disable", "Выкл", "Выключить", "Off"
 ]
 
-@router.message(or_f(Command("start"), *[F.text.contains(word) for word in KEYWORDS]))
+@router.message(
+    or_f(Command("start"), *[F.text.contains(word) for word in KEYWORDS]),
+    F.chat.type == ChatType.PRIVATE  # ТОЛЬКО личные сообщения
+)
 async def handle_settings_request(message: types.Message):
-    """Обработка команды /start и ключевых слов"""
+    """Обработка команды /start и ключевых слов ТОЛЬКО в личных сообщениях"""
     user_id = message.from_user.id
     username = message.from_user.username
     
@@ -83,6 +87,37 @@ async def handle_settings_request(message: types.Message):
         # Если это ключевое слово - сразу показываем настройки
         await show_settings_menu(message, user_id, lang, lang_code)
 
+
+@router.message(F.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
+async def ignore_in_groups(message: types.Message):
+    """
+    Игнорировать команды бота в группах.
+    Бот реагирует только в личных сообщениях.
+    """
+    # Проверяем, является ли сообщение командой или ключевым словом
+    if not message.text:
+        return
+    
+    text = message.text.strip()
+    
+    # Проверяем команды
+    if text.startswith('/'):
+        # Это команда, но мы игнорируем ее в группах
+        return
+    
+    # Проверяем ключевые слова
+    text_lower = text.lower()
+    is_keyword = any(word in text_lower for word in [
+        "еда", "food", "тотемы", "тотем", "stock", "eat", "totem", "totems",
+        "настройки", "settings", "уведомления", "notifications",
+        "фрукты", "fruits", "fruit", "отключить", "disable", "выкл", "выключить", "off"
+    ])
+    
+    if is_keyword:
+        # Это ключевое слово, но мы игнорируем его в группах
+        return
+
+
 async def show_settings_menu(message: types.Message, user_id: int, lang: str, lang_code: str):
     """Показ меню настроек"""
     from handlers.settings import get_settings_keyboard
@@ -109,6 +144,7 @@ async def show_settings_menu(message: types.Message, user_id: int, lang: str, la
         keyboard = await get_settings_keyboard(user_id, lang_code)
         await message.answer(text, reply_markup=keyboard)
 
+
 @router.callback_query(lambda c: c.data.startswith("lang_"))
 async def process_language(callback: types.CallbackQuery):
     """Обработка выбора языка"""
@@ -132,6 +168,7 @@ async def process_language(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=builder.as_markup())
     await callback.answer()
+
 
 @router.callback_query(lambda c: c.data == "check_subscription")
 async def check_subscription(callback: types.CallbackQuery):

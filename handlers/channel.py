@@ -4,6 +4,7 @@ from aiogram import Router, Bot
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import exceptions
+from aiogram.enums import ChatType
 
 from database import Database
 from config import Config
@@ -195,14 +196,17 @@ async def process_totem_notification(totem_type: str, text: str, link: str, bot:
     
     logger.info(f"📊 Итог тотемы: отправлено {sent_count}, ошибок {error_count}")
 
-@router.message(Command("test_channel"))
+
+# ========== КОМАНДЫ ТОЛЬКО В ЛИЧНЫХ СООБЩЕНИЯХ ==========
+
+@router.message(Command("test_channel"), F.chat.type == ChatType.PRIVATE)
 async def test_channel_command(message: Message, bot: Bot):
-    """Тестовая команда для проверки работы канала"""
+    """Тестовая команда для проверки работы канала - ТОЛЬКО в личных сообщениях"""
     await message.answer("✅ Канал работает! Бот получает сообщения.")
 
-@router.message(Command("debug_fruits"))
+@router.message(Command("debug_fruits"), F.chat.type == ChatType.PRIVATE)
 async def debug_fruits_command(message: Message):
-    """Отладка выбора фруктов"""
+    """Отладка выбора фруктов - ТОЛЬКО в личных сообщениях"""
     user_id = message.from_user.id
     user = db.get_user(user_id)
     user_fruits = db.get_user_fruits(user_id)
@@ -227,9 +231,9 @@ async def debug_fruits_command(message: Message):
     
     await message.answer(response)
 
-@router.message(Command("test_format"))
+@router.message(Command("test_format"), F.chat.type == ChatType.PRIVATE)
 async def test_format_command(message: Message):
-    """Тест форматирования сообщения"""
+    """Тест форматирования сообщения - ТОЛЬКО в личных сообщениях"""
     test_fruits = [
         {"name": "Pineapple", "quantity": 2},
         {"name": "Dragon Fruit", "quantity": 3},
@@ -244,9 +248,9 @@ async def test_format_command(message: Message):
     en_text = MessageFilter.format_food_message(test_fruits, "ENG")
     await message.answer(f"🇺🇸 Английский:\n{en_text}", parse_mode="HTML")
 
-@router.message(Command("send_test_notification"))
+@router.message(Command("send_test_notification"), F.chat.type == ChatType.PRIVATE)
 async def send_test_notification_command(message: Message, bot: Bot):
-    """Отправка тестового уведомления"""
+    """Отправка тестового уведомления - ТОЛЬКО в личных сообщениях"""
     user_id = message.from_user.id
     user = db.get_user(user_id)
     
@@ -270,9 +274,9 @@ async def send_test_notification_command(message: Message, bot: Bot):
     except Exception as e:
         await message.answer(f"❌ Ошибка отправки: {e}")
 
-@router.message(Command("channel_status"))
+@router.message(Command("channel_status"), F.chat.type == ChatType.PRIVATE)
 async def channel_status_command(message: Message, bot: Bot):
-    """Проверка статуса канала"""
+    """Проверка статуса канала - ТОЛЬКО в личных сообщениях"""
     response = f"📊 СТАТУС КАНАЛА:\n\n"
     response += f"ID канала в config: {Config.SOURCE_CHANNEL_ID}\n"
     response += f"ID группы подписки: {Config.REQUIRED_GROUP_ID}\n"
@@ -294,3 +298,24 @@ async def channel_status_command(message: Message, bot: Bot):
         response += f"❌ Ошибка доступа: {e}\n"
     
     await message.answer(response)
+
+
+# ========== ИГНОРИРОВАНИЕ КОМАНД В ГРУППАХ ==========
+
+@router.message(F.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
+async def ignore_commands_in_groups(message: Message):
+    """
+    Игнорировать команды бота в группах.
+    Команды работают только в личных сообщениях.
+    """
+    if not message.text:
+        return
+    
+    text = message.text.strip()
+    
+    # Проверяем только команды, начинающиеся с /
+    if text.startswith('/'):
+        # Это команда, но мы игнорируем ее в группах
+        # Можно добавить логирование или просто ничего не делать
+        logger.debug(f"Игнорируем команду в группе: {text} от {message.from_user.id}")
+        return
