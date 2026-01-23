@@ -21,6 +21,14 @@ KEYWORDS = [
     "Фрукты", "Fruits", "Fruit", "Отключить", "Disable", "Выкл", "Выключить", "Off"
 ]
 
+# Функция для получения языка пользователя (используется в group_commands.py)
+def get_user_language(user_id: int) -> str:
+    """Получить язык пользователя из БД"""
+    user = db.get_user(user_id)
+    if user and user.get("language") == "RUS":
+        return "ru"
+    return "en"
+
 @router.message(
     or_f(Command("start"), *[F.text.contains(word) for word in KEYWORDS]),
     F.chat.type == ChatType.PRIVATE  # ТОЛЬКО личные сообщения
@@ -119,15 +127,23 @@ async def ignore_in_groups(message: types.Message):
 
 
 async def show_settings_menu(message: types.Message, user_id: int, lang: str, lang_code: str):
-    """Показ меню настроек"""
+    """Показ меню настроек с учетом исключений"""
     from handlers.settings import get_settings_keyboard
     
-    # Проверяем подписку
+    # Проверяем подписку (не игнорируем исключения для показа пользователю)
     from utils.subscription import check_user_subscription
     is_subscribed = await check_user_subscription(user_id, Config.REQUIRED_GROUP_ID, message.bot)
+    
+    # Проверяем, есть ли пользователь в исключениях
+    is_exception = db.is_exception(user_id)
+    
+    # Если пользователь в исключениях, считаем его подписанным
+    if is_exception:
+        is_subscribed = True
+    
     db.update_subscription(user_id, is_subscribed)
     
-    if not is_subscribed:
+    if not is_subscribed and not is_exception:
         # Показываем сообщение о необходимости подписки
         text = locale_manager.get_text(lang_code, "subscription.require")
         builder = InlineKeyboardBuilder()
@@ -139,6 +155,15 @@ async def show_settings_menu(message: types.Message, user_id: int, lang: str, la
         )
         await message.answer(text, reply_markup=builder.as_markup())
     else:
+        # Если пользователь в исключениях, показываем особое сообщение
+        if is_exception:
+            if lang == "RUS":
+                special_text = "✅ Вы в списке исключений и можете получать уведомления без подписки на группу."
+            else:
+                special_text = "✅ You are in the exceptions list and can receive notifications without group subscription."
+            
+            await message.answer(special_text)
+        
         # Показываем настройки
         text = locale_manager.get_text(lang_code, "settings.title")
         keyboard = await get_settings_keyboard(user_id, lang_code)
@@ -180,18 +205,33 @@ async def check_subscription(callback: types.CallbackQuery):
     user = db.get_user(user_id)
     lang_code = "ru" if user.get("language") == "RUS" else "en"
     
-    # Проверяем подписку
+    # Проверяем подписку (не игнорируем исключения для проверки)
     is_subscribed = await check_user_subscription(
         user_id, 
         Config.REQUIRED_GROUP_ID, 
         callback.bot
     )
     
+    # Проверяем, есть ли пользователь в исключениях
+    is_exception = db.is_exception(user_id)
+    
+    # Если пользователь в исключениях, считаем его подписанным
+    if is_exception:
+        is_subscribed = True
+    
     db.update_subscription(user_id, is_subscribed)
     
     if is_subscribed:
         # Показываем меню настроек
         text = locale_manager.get_text(lang_code, "subscription.confirmed")
+        
+        # Если пользователь в исключениях, добавляем особое сообщение
+        if is_exception:
+            if lang_code == "ru":
+                text += "\n\n⚠️ Вы в списке исключений и можете получать уведомления без подписки."
+            else:
+                text += "\n\n⚠️ You are in exceptions list and can receive notifications without subscription."
+        
         keyboard = await get_settings_keyboard(user_id, lang_code)
         
         await callback.message.edit_text(text, reply_markup=keyboard)

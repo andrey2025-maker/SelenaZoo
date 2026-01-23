@@ -47,10 +47,21 @@ class Database:
                 )
             ''')
             
+            # Таблица исключений подписок
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS subscription_exceptions (
+                    user_id INTEGER PRIMARY KEY,
+                    admin_id INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+                )
+            ''')
+            
             # Создаем индексы для ускорения запросов
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_subscribed ON users(is_subscribed)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_fruits_user ON user_fruits(user_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_fruits_fruit ON user_fruits(fruit_name)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_exceptions_user ON subscription_exceptions(user_id)')
             
             conn.commit()
         logger.info("Database initialized with indexes")
@@ -256,3 +267,58 @@ class Database:
             ''', (username, user_id))
             conn.commit()
             logger.info(f"Username updated for user {user_id}: {username}")
+    
+    # ========== МЕТОДЫ ДЛЯ ИСКЛЮЧЕНИЙ ==========
+    
+    def is_exception(self, user_id: int) -> bool:
+        """Проверка, есть ли пользователь в исключениях"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM subscription_exceptions WHERE user_id = ?', (user_id,))
+            return cursor.fetchone() is not None
+    
+    def add_exception(self, user_id: int, admin_id: int) -> bool:
+        """Добавление пользователя в исключения"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute('''
+                    INSERT OR REPLACE INTO subscription_exceptions (user_id, admin_id) 
+                    VALUES (?, ?)
+                ''', (user_id, admin_id))
+                conn.commit()
+                logger.info(f"User {user_id} added to exceptions by admin {admin_id}")
+                return True
+            except Exception as e:
+                logger.error(f"Error adding exception for user {user_id}: {e}")
+                return False
+    
+    def remove_exception(self, user_id: int) -> bool:
+        """Удаление пользователя из исключений"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM subscription_exceptions WHERE user_id = ?', (user_id,))
+            conn.commit()
+            success = cursor.rowcount > 0
+            if success:
+                logger.info(f"User {user_id} removed from exceptions")
+            return success
+    
+    def get_exceptions(self) -> List[Dict]:
+        """Получение списка исключений"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT se.*, u.username, u.language
+                FROM subscription_exceptions se
+                LEFT JOIN users u ON se.user_id = u.user_id
+                ORDER BY se.created_at DESC
+            ''')
+            return [dict(row) for row in cursor.fetchall()]
+    
+    def get_user_with_exception_status(self, user_id: int) -> Dict:
+        """Получение информации о пользователе со статусом исключения"""
+        user = self.get_user(user_id)
+        if user:
+            user['is_exception'] = self.is_exception(user_id)
+        return user

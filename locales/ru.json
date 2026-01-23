@@ -37,10 +37,20 @@
     },
     "fruits": {
         "Pear": "Груша",
-        "Accorn": "Желудь", 
         "Pineapple": "Ананас",
-        "Kiwi": "Киви",
-        "Colossal Pinecone": "Колоссальная шишка",
-        "Dragon Fruit": "Драконий фрукт"
+        "Gold Mango": "Манго",
+        "Dragon Fruit": "Драконий фрукт",
+        "Bloodstone Cycad": "Bloodstone Cycad",
+        "Colossal Pinecone": "Colossal Pinecone",
+        "Franken Kiwi": "Франкен Киви",
+        "Pumpkin": "Тыква",
+        "Durian": "Дуриан",
+        "Candy Corn": "Конфета",
+        "Deepsea Pearl Fruit": "Ракушка",
+        "Volt Ginkgo": "Volt Ginkgo",
+        "Cranberry": "Клюква",
+        "Acorn": "Желудь",
+        "Gingerbread": "Пряничный человечек",
+        "Candycane": "Конфетная трость"
     }
 }

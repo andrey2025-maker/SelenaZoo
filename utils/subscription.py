@@ -7,8 +7,12 @@ from utils.messages import locale_manager
 
 db = Database()
 
-async def check_user_subscription(user_id: int, group_id: int, bot: Bot) -> bool:
-    """Проверка, подписан ли пользователь на группу"""
+async def check_user_subscription(user_id: int, group_id: int, bot: Bot, ignore_exceptions: bool = False) -> bool:
+    """Проверка подписки с учетом исключений"""
+    # Проверяем, есть ли пользователь в исключениях
+    if not ignore_exceptions and db.is_exception(user_id):
+        return True
+    
     try:
         chat_member = await bot.get_chat_member(group_id, user_id)
         return chat_member.status in ["member", "administrator", "creator"]
@@ -26,18 +30,26 @@ async def daily_subscription_check(bot: Bot):
             for user in users:
                 user_id = user["user_id"]
                 
-                # Проверяем подписку
+                # Проверяем подписку (игнорируем исключения для проверки)
                 is_subscribed = await check_user_subscription(
                     user_id, 
                     Config.REQUIRED_GROUP_ID, 
-                    bot
+                    bot,
+                    ignore_exceptions=True  # Игнорируем исключения для проверки
                 )
+                
+                # Проверяем, есть ли пользователь в исключениях
+                is_exception = db.is_exception(user_id)
+                
+                # Если пользователь в исключениях, считаем его подписанным
+                if is_exception:
+                    is_subscribed = True
                 
                 # Обновляем статус в БД
                 db.update_subscription(user_id, is_subscribed)
                 
-                # Если пользователь отписался, отправляем уведомление
-                if user["is_subscribed"] and not is_subscribed:
+                # Если пользователь отписался и не в исключениях, отправляем уведомление
+                if user["is_subscribed"] and not is_subscribed and not is_exception:
                     unsubscribed_users.append(user_id)
             
             # Отправляем уведомления отписавшимся пользователям

@@ -38,10 +38,20 @@
     },
     "fruits": {
         "Pear": "Pear",
-        "Acorn": "Acorn",
         "Pineapple": "Pineapple",
-        "Kiwi": "Kiwi",
+        "Gold Mango": "Gold Mango",
+        "Dragon Fruit": "Dragon Fruit",
+        "Bloodstone Cycad": "Bloodstone Cycad",
         "Colossal Pinecone": "Colossal Pinecone",
-        "Dragon Fruit": "Dragon Fruit"
+        "Franken Kiwi": "Franken Kiwi",
+        "Pumpkin": "Pumpkin",
+        "Durian": "Durian",
+        "Candy Corn": "Candy Corn",
+        "Deepsea Pearl Fruit": "Deepsea Pearl Fruit",
+        "Volt Ginkgo": "Volt Ginkgo",
+        "Cranberry": "Cranberry",
+        "Acorn": "Acorn",
+        "Gingerbread": "Gingerbread",
+        "Candycane": "Candycane"
     }
 }
